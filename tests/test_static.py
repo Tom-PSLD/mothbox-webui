@@ -8,7 +8,7 @@ WEBUI = STATIC.parent
 ERROR_CODES = {
     "no_day", "no_hour", "bad_minute", "bad_runtime", "bad_hour", "bad_weekday",
     "bad_time", "bad_timezone", "bad_output", "hardware_error", "camera_error", "camera_busy",
-    "bad_request", "bad_name", "bad_battery", "debug_still_on", "not_found", "network",
+    "bad_request", "bad_name", "bad_battery", "debug_still_on", "active_off", "not_found", "network",
 }
 
 
@@ -64,3 +64,15 @@ def test_index_served(sim_paths):
     r = app.test_client().get("/")
     assert r.status_code == 200
     assert b"app.js" in r.data
+
+
+def test_fix3_timezone_placeholder_and_sync_guard():
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert 't("clock.choose")' in js
+    assert '$("#sync-btn").disabled = !$("#tz-city").value' in js
+
+
+def test_fix6_active_off_warning_in_page():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    assert 'id="active-off-box"' in html
+    assert 'data-i18n="finish.active_off"' in html

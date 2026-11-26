@@ -67,10 +67,15 @@ def create_app(paths: Paths, runner, camera_factory=TestCamera, start_threads: b
                reboot_delay: float = 2.0) -> Flask:
     app = Flask(__name__, static_folder=str(STATIC), static_url_path="/static")
     outputs = Outputs(paths, runner)
-    camera = camera_factory(outputs)
+    camera = camera_factory(outputs, paths)
 
     def settings() -> dict:
         return read_settings(paths.settings_csv, paths.default_settings_csv)
+
+    def current_name(s: dict) -> str:
+        if s.get("autoname", "").lower() != "true" and s.get("name", "").strip():
+            return s["name"].strip()
+        return read_kv(paths.controls_root / "name.txt").get("name", s.get("name", ""))
 
     def error(code: str, status: int):
         return jsonify({"ok": False, "error": code}), status
@@ -121,7 +126,7 @@ def create_app(paths: Paths, runner, camera_factory=TestCamera, start_threads: b
             "next_session": nxt.isoformat(timespec="minutes") if nxt else None,
             "timezone": s.get("timezone", ""),
             "box_time": datetime.now().isoformat(timespec="seconds"),
-            "name": read_kv(paths.controls_root / "name.txt").get("name", s.get("name", "")),
+            "name": current_name(s),
             "autoname": s.get("autoname", "").lower() == "true",
             "battery": {k: _float(s.get(k)) for k in BATTERY_KEYS},
             "outputs": outputs.state(),
@@ -209,6 +214,8 @@ def create_app(paths: Paths, runner, camera_factory=TestCamera, start_threads: b
         switches = refresh_switches(paths, runner)
         if switches.get("Debug", "1") != "0":
             raise ApiError("debug_still_on", 409)
+        if switches.get("Active", "1") != "1":
+            raise ApiError("active_off", 409)
         outputs.all_off()
 
         def later():

@@ -53,3 +53,39 @@ def test_camera_busy_raises():
 
 def test_sim_camera_returns_sample():
     assert SimCamera(FakeOutputs()).capture()[:2] == b"\xff\xd8"
+
+
+from webui.camera import camera_controls
+
+
+def write_cam(sim_paths, autocal, lens="6.5", vflip="0"):
+    p = sim_paths.custom_root / "camera_settings.csv"
+    text = p.read_text()
+    import re
+    text = re.sub(r"^AutoCalibration,[^,]*,", f"AutoCalibration,{autocal},", text, flags=re.M)
+    text = re.sub(r"^LensPosition,[^,]*,", f"LensPosition,{lens},", text, flags=re.M)
+    text = re.sub(r"^VerticalFlip,[^,]*,", f"VerticalFlip,{vflip},", text, flags=re.M)
+    p.write_text(text)
+
+
+def test_fix5_controls_use_calibrated_lens_when_autocalibration(sim_paths):
+    write_cam(sim_paths, 1)
+    controls, vflip = camera_controls(sim_paths)
+    assert controls["AfMode"] == 0
+    assert controls["LensPosition"] == 4.06994104385376
+    assert vflip is False
+
+
+def test_fix5_controls_use_csv_lens_when_manual(sim_paths):
+    write_cam(sim_paths, 0, lens="7.25", vflip="1")
+    controls, vflip = camera_controls(sim_paths)
+    assert controls["LensPosition"] == 7.25
+    assert vflip is True
+
+
+def test_fix5_controls_defaults_when_files_missing(sim_paths):
+    (sim_paths.custom_root / "camera_settings.csv").unlink()
+    (sim_paths.controls_root / "aflensposition.txt").unlink()
+    controls, vflip = camera_controls(sim_paths)
+    assert controls == {"AfMode": 0, "LensPosition": 6.0}
+    assert vflip is False

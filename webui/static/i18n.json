@@ -100,7 +100,11 @@
   "day.short.6": "S",
   "day.long.6": "samedi",
   "day.short.7": "D",
-  "day.long.7": "dimanche"
+  "day.long.7": "dimanche",
+  "clock.choose": "— choisir —",
+  "error.active_off": "Le switch Active est sur OFF : la Mothbox ne fera aucune session.",
+  "finish.active_off_title": "Attention : le switch Active est sur OFF",
+  "finish.active_off": "Avec Active sur OFF, la Mothbox s'éteint dès qu'elle se réveille et ne prend aucune photo. Remettez le switch Active sur ON."
  },
  "en": {
   "step.clock": "Time",
@@ -203,6 +207,10 @@
   "day.short.6": "S",
   "day.long.6": "Saturday",
   "day.short.7": "S",
-  "day.long.7": "Sunday"
+  "day.long.7": "Sunday",
+  "clock.choose": "— choose —",
+  "error.active_off": "The Active switch is OFF: the Mothbox will run no session.",
+  "finish.active_off_title": "Warning: the Active switch is OFF",
+  "finish.active_off": "With Active OFF, the Mothbox shuts down as soon as it wakes up and takes no photos. Set the Active switch back to ON."
  }
 }

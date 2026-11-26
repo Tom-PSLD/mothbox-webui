@@ -180,8 +180,10 @@ function render() {
   $("#r-schedule").textContent = describeSchedule(active);
   $("#r-next").textContent = next;
 
+  const activeOff = s.switches.Active === "0";
+  $("#active-off-box").hidden = !activeOff || rebooting;
   $("#debug-on-box").hidden = !debugOn || rebooting;
-  $("#debug-off-box").hidden = debugOn || rebooting;
+  $("#debug-off-box").hidden = debugOn || activeOff || rebooting;
   $("#rebooting-box").hidden = !rebooting;
 
   Object.keys(s.outputs).forEach((name) => setOutputUi(name, s.outputs[name]));
@@ -213,27 +215,41 @@ function phoneZone() {
   try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { return ""; }
 }
 
+function placeholder(select) {
+  const o = document.createElement("option");
+  o.value = ""; o.textContent = t("clock.choose");
+  select.appendChild(o);
+}
+
+function updateSyncButton() {
+  $("#sync-btn").disabled = !$("#tz-city").value;
+}
+
+
 function fillRegions(selected) {
   const region = $("#tz-region");
   region.innerHTML = "";
+  placeholder(region);
   Object.keys(zones).sort().forEach((r) => {
     const o = document.createElement("option");
     o.value = r; o.textContent = r.replace(/_/g, " ");
     region.appendChild(o);
   });
-  if (selected) region.value = selected;
+  region.value = selected || "";
   fillCities();
 }
 
 function fillCities(selected) {
   const city = $("#tz-city");
   city.innerHTML = "";
+  placeholder(city);
   (zones[$("#tz-region").value] || []).forEach((c) => {
     const o = document.createElement("option");
     o.value = c; o.textContent = c.replace(/_/g, " ").replace(/\//g, " / ");
     city.appendChild(o);
   });
-  if (selected) city.value = selected;
+  city.value = selected || "";
+  updateSyncButton();
 }
 
 function zoneKnown(tz) {
@@ -258,8 +274,7 @@ async function initClock() {
     selectZone(tz);
   } else {
     $("#tz-detected").textContent = t("clock.not_detected");
-    if (state && state.timezone && zoneKnown(state.timezone)) selectZone(state.timezone);
-    else fillRegions();
+    fillRegions();
   }
 }
 
@@ -281,7 +296,7 @@ async function syncClock() {
     await loadState(false);
   } catch (e) {
   } finally {
-    btn.disabled = false;
+    updateSyncButton();
   }
 }
 
@@ -413,6 +428,7 @@ async function init() {
   $$("#steps button").forEach((b) => b.addEventListener("click", () => goTo(Number(b.dataset.step))));
   $$("[data-goto]").forEach((b) => b.addEventListener("click", () => goTo(Number(b.dataset.goto))));
   $("#tz-region").addEventListener("change", () => fillCities());
+  $("#tz-city").addEventListener("change", updateSyncButton);
   $("#sync-btn").addEventListener("click", syncClock);
   $("#save-schedule").addEventListener("click", saveSchedule);
   $("#save-advanced").addEventListener("click", saveAdvanced);

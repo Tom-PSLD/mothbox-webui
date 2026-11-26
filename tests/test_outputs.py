@@ -28,20 +28,59 @@ def test_set_on_runs_script(sim_paths):
     out, sim, _ = make(sim_paths)
     out.set("attract", True)
     assert sim.calls == [script(sim_paths, "scripts/Attract_On_noBootLock.py")]
-    assert out.state() == {"attract": True, "flash": False, "12v": False}
+    assert out.state() == {"attract": True, "flash": False, "12v": True}
 
 
 def test_scripts_for_each_output(sim_paths):
     out, sim, _ = make(sim_paths)
-    for name in ("flash", "12v"):
-        out.set(name, True)
-        out.set(name, False)
+    out.set("flash", True)
+    out.set("flash", False)
     assert sim.calls == [
         script(sim_paths, "Flash_On.py"),
         script(sim_paths, "Flash_Off.py"),
-        script(sim_paths, "scripts/12vOn.py"),
         script(sim_paths, "scripts/12vOff.py"),
     ]
+
+
+def test_fix4_flash_on_powers_12v_rail(sim_paths):
+    out, _, _ = make(sim_paths)
+    out.set("flash", True)
+    assert out.state() == {"attract": False, "flash": True, "12v": True}
+
+
+def test_fix4_flash_off_cuts_12v_when_unused(sim_paths):
+    out, sim, _ = make(sim_paths)
+    out.set("flash", True)
+    out.set("flash", False)
+    assert sim.calls[-1] == script(sim_paths, "scripts/12vOff.py")
+    assert out.state()["12v"] is False
+
+
+def test_fix4_attract_off_restores_12v_for_flash(sim_paths):
+    out, sim, _ = make(sim_paths)
+    out.set("attract", True)
+    out.set("flash", True)
+    out.set("attract", False)
+    assert sim.calls[-2:] == [
+        script(sim_paths, "scripts/Attract_Off_noBootLock.py"),
+        script(sim_paths, "scripts/12vOn.py"),
+    ]
+    assert out.state() == {"attract": False, "flash": True, "12v": True}
+
+
+def test_fix4_12v_off_turns_everything_off(sim_paths):
+    out, _, _ = make(sim_paths)
+    out.set("attract", True)
+    out.set("flash", True)
+    out.set("12v", False)
+    assert out.state() == {"attract": False, "flash": False, "12v": False}
+
+
+def test_fix4_heartbeat_timeout_always_cuts_12v(sim_paths):
+    out, sim, clock = make(sim_paths)
+    clock.t = 30
+    out.tick()
+    assert script(sim_paths, "scripts/12vOff.py") in sim.calls
 
 
 def test_unknown_output(sim_paths):
@@ -68,7 +107,10 @@ def test_auto_off_after_300s(sim_paths):
     clock.t = 300
     out.heartbeat()
     assert out.tick() == ["attract"]
-    assert sim.calls[-1] == script(sim_paths, "scripts/Attract_Off_noBootLock.py")
+    assert sim.calls[-2:] == [
+        script(sim_paths, "scripts/Attract_Off_noBootLock.py"),
+        script(sim_paths, "scripts/12vOff.py"),
+    ]
     assert out.state()["attract"] is False
 
 
@@ -120,3 +162,10 @@ def test_concurrent_set_serialized(sim_paths):
     for t in threads:
         t.join()
     assert max(peak) == 1
+
+
+def test_fix4_12v_off_runs_rail_off_once(sim_paths):
+    out, sim, _ = make(sim_paths)
+    out.set("12v", True)
+    out.set("12v", False)
+    assert sim.calls.count(script(sim_paths, "scripts/12vOff.py")) == 1

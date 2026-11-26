@@ -69,3 +69,10 @@ def test_set_timezone_rejects_unknown(sim_paths):
         set_timezone(sim_paths, SimRunner(), "Etc/Unknown")
     assert sim_paths.settings_csv.read_text() == before
     assert (sim_paths.controls_root / "timezone.txt").read_text() == before_ctl
+
+
+def test_fix2_set_timezone_reloads_process_zone(sim_paths, monkeypatch):
+    called = []
+    monkeypatch.setattr("webui.clock.time.tzset", lambda: called.append(1))
+    set_timezone(sim_paths, SimRunner(), "Europe/Zurich")
+    assert called == [1]

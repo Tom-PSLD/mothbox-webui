@@ -51,3 +51,4 @@ def set_timezone(paths: Paths, runner, tz: str) -> None:
     )
     write_kv(paths.controls_root / "timezone.txt", "timezone", tz)
     runner.run(["python3", str(paths.mothbox_root / "TimezoneUpdater.py")])
+    time.tzset()

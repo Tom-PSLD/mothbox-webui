@@ -10,7 +10,7 @@ from webui.settings_csv import read_settings
 
 
 class BusyCamera:
-    def __init__(self, outputs):
+    def __init__(self, outputs, paths=None):
         pass
 
     def capture(self):
@@ -133,7 +133,7 @@ def test_advanced_bad_battery_400(ctx):
 def test_output_on(ctx):
     client, _, _ = ctx
     r = client.post("/api/output/attract", json={"on": True})
-    assert r.get_json() == {"ok": True, "outputs": {"attract": True, "flash": False, "12v": False}}
+    assert r.get_json() == {"ok": True, "outputs": {"attract": True, "flash": False, "12v": True}}
 
 
 def test_output_unknown_400(ctx):
@@ -219,3 +219,27 @@ def test_api_unknown_route_404_json(ctx):
     r = client.get("/api/nope")
     assert r.status_code == 404
     assert r.get_json() == {"ok": False, "error": "not_found"}
+
+
+def test_fix1_manual_name_shown_after_save(ctx):
+    client, _, _ = ctx
+    body = {"autoname": False, "name": "SiteA", "bat_voltage": 12, "bat_Wh": 100,
+            "bat_80perVolts": 12.5, "bat_20perVolts": 11}
+    client.post("/api/advanced", json=body)
+    assert client.get("/api/state").get_json()["name"] == "SiteA"
+
+
+def test_fix6_state_ready_flags(ctx):
+    client, _, paths = ctx
+    (paths.controls_root / "switches.txt").write_text("Active=0\nDebug=0\n")
+    j = client.get("/api/state").get_json()
+    assert j["switches"]["Active"] == "0"
+
+
+def test_fix6_reboot_refused_when_active_off(ctx):
+    client, sim, paths = ctx
+    (paths.controls_root / "switches.txt").write_text("Active=0\nDebug=0\n")
+    r = client.post("/api/reboot")
+    assert r.status_code == 409
+    assert r.get_json()["error"] == "active_off"
+    assert ["systemctl", "reboot"] not in sim.calls
