@@ -1,10 +1,14 @@
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
 ICI = Path(__file__).resolve().parent
-OUT = ICI / "annotees_notice"
+LANGUE = sys.argv[1] if len(sys.argv) > 1 else "fr"
+SUFFIXE = "" if LANGUE == "fr" else f"_{LANGUE}"
+OUT = ICI / f"annotees_notice{SUFFIXE}"
 OUT.mkdir(exist_ok=True)
+CAPTURES = ICI / f"captures{SUFFIXE}"
 NOIR = (25, 25, 25)
 BLANC = (255, 255, 255)
 FOND = (255, 255, 255)
@@ -67,7 +71,7 @@ def rangee():
 
 
 def ecran(src, dst, reperes, debut=1):
-    im = Image.open(ICI / "captures" / src).convert("RGB")
+    im = Image.open(CAPTURES / src).convert("RGB")
     bord = Image.new("RGB", (im.width + 8, im.height + 8), (170, 170, 170))
     bord.paste(im, (4, 4))
     im = marge(bord, droite=110)
@@ -80,14 +84,19 @@ def ecran(src, dst, reperes, debut=1):
 
 def ecrans():
     ecran("etape1.png", "ecran1.jpg", [(700, 782), (700, 1000), (700, 1288)])
-    ecran("etape2.png", "ecran2.jpg", [(730, 710), (730, 1090), (730, 1422), (730, 1552), (730, 1760)])
-    ecran("etape3.png", "ecran3.jpg", [(720, 650), (720, 1124), (720, 1420)])
+    if LANGUE == "en":
+        ecran("etape2.png", "ecran2.jpg", [(730, 672), (730, 1086), (730, 1374), (730, 1506), (730, 1714)])
+        ecran("etape3.png", "ecran3.jpg", [(720, 606), (720, 1078), (720, 1420)])
+    else:
+        ecran("etape2.png", "ecran2.jpg", [(730, 710), (730, 1090), (730, 1422), (730, 1552), (730, 1760)])
+        ecran("etape3.png", "ecran3.jpg", [(720, 650), (720, 1124), (720, 1420)])
     ecran("etape4.png", "ecran4.jpg", [(720, 1080)])
     ecran("etape4_pret.png", "ecran4_pret.jpg", [(720, 1020)], debut=2)
     ecran("etape2_u1.png", "ecran2_u1.jpg", [(720, 700)])
 
 
 if __name__ == "__main__":
-    carte()
-    rangee()
+    if LANGUE == "fr":
+        carte()
+        rangee()
     ecrans()
