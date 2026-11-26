@@ -9,6 +9,8 @@ OUT.mkdir(exist_ok=True)
 ROUGE = (228, 60, 30)
 VERT = (46, 125, 79)
 BLANC = (255, 255, 255)
+ORANGE = (232, 120, 26)
+GRIS = (110, 116, 120)
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 
@@ -136,7 +138,24 @@ def ecrans():
     ecran("etape4_active_off.png", "ecran_etape4_active_off.jpg", [("c", (34, 826, 746, 1080)), ("p", (740, 836), "!")])
 
 
+def rangee_mode():
+    im = Image.open(ICI / "photos/tout_off.png").convert("RGB")
+    d = ImageDraw.Draw(im)
+    groupes = [
+        ((492, 912, 552, 1200), VERT, 1, 522),
+        ((558, 912, 618, 1200), ORANGE, 2, 588),
+        ((624, 912, 946, 1200), GRIS, 3, 785),
+        ((950, 912, 1078, 1200), VERT, 4, 1000),
+    ]
+    for box, coul, n, cx in groupes:
+        d.rounded_rectangle(box, 12, outline=BLANC, width=12)
+        d.rounded_rectangle([box[0] + 2, box[1] + 2, box[2] - 2, box[3] - 2], 10, outline=coul, width=8)
+        pastille(d, (cx, 1258), n, r=28, coul=coul)
+    sauver(im, "rangee_mode.jpg", crop=(440, 860, 1120, 1300), maxw=900)
+
+
 def main():
+    rangee_mode()
     ecrans()
     carte_reperes()
     position("tout_off.png", "pos_tout_off.jpg", False, False, (470, 380, 1370, 1400))

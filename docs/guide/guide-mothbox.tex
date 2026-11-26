@@ -12,7 +12,8 @@
 \newcommand{\sw}[1]{\textsf{\bfseries #1}}
 \newcommand{\on}{\textcolor{pslvert}{\textsf{\bfseries ON}}}
 \newcommand{\off}{\textcolor{pslrouge}{\textsf{\bfseries OFF}}}
-\newcommand{\pas}[1]{\tikz[baseline=(n.base)]\node[circle,fill=pslrouge,text=white,font=\sffamily\bfseries\footnotesize,inner sep=1.5pt,minimum size=1.2em](n){#1};}
+\newcommand{\pasc}[2]{\tikz[baseline=(n.base)]\node[circle,fill=#1,text=white,font=\sffamily\bfseries\footnotesize,inner sep=1.5pt,minimum size=1.2em](n){#2};}
+\newcommand{\pas}[1]{\pasc{pslrouge}{#1}}
 \newtcolorbox{astuce}[1][Bon réflexe]{enhanced,breakable,colback=pslvertclair,colframe=pslvert,
   fonttitle=\sffamily\bfseries,title={#1},arc=2pt,boxrule=0.6pt,left=6pt,right=6pt}
 
@@ -96,11 +97,41 @@ La carte Mothbox porte quatre rangées de petits switches. Pour l'utilisation co
 \begin{description}[leftmargin=0pt,itemsep=8pt]
   \item[\pas{1} Heures (01 à 00)] 24 switches, un par heure. Ils ne servent qu'en mode manuel (\cref{chmanuel}).
   \item[\pas{2} Jours + Active] 7 switches de jours (Mo à Su), utilisés en mode manuel, et le switch \sw{Active}, \textbf{le plus important} : sans lui, la Mothbox ne fait rien.
-  \item[\pas{3} Mode] \sw{U1} (mode manuel), \sw{C1}, \sw{A1}–\sw{A3}, \sw{EXT}, \sw{HI} et \sw{DEBUG}. Seuls \sw{DEBUG} et \sw{U1} sont décrits ici ; laissez les autres sur \off.
+  \item[\pas{3} Mode] \sw{U1}, \sw{C1}, \sw{A1}–\sw{A3}, \sw{EXT}, \sw{HI} et \sw{DEBUG}. Leur rôle est détaillé juste en dessous.
 \end{description}
 \end{minipage}
 \caption{Les trois zones de switches de la carte Mothbox v5.0.5.}
 \end{figure}
+
+\section*{À quoi servent les switches de la rangée MODE ?}
+\addcontentsline{toc}{section}{À quoi servent les switches de la rangée MODE ?}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{rangee_mode.jpg}
+\caption{La rangée MODE. En vert : les switches utiles au quotidien ; en orange : un test d'atelier ; en gris : des switches réservés, sans effet aujourd'hui.}
+\end{figure}
+
+\begin{table}[H]
+\centering\sffamily\small
+\caption{Rôle de chaque switch de la rangée MODE (logiciel Mothbox 5.2.1).}
+\begin{tabularx}{\textwidth}{@{}c>{\raggedright\arraybackslash}p{2.1cm}L@{}}
+\toprule
+ & Switch & Rôle \\
+\midrule
+\pasc{pslvert}{1} & \sw{U1} & \textbf{Mode manuel.} Sur \on, le planning est réglé par les switches d'heures et de jours de la carte, et plus par la page (\cref{chmanuel}). \\
+\pasc{pslorange}{2} & \sw{C1} & \textbf{Test des lumières} (mode \og fête \fg{}). Seulement avec \sw{DEBUG} sur \on : toutes les voies d'éclairage (voies 1, 2, 3, sortie externe) et le flash clignotent à tour de rôle, en boucle, pour vérifier d'un coup d'œil que chaque voie est bien câblée. Ne s'arrête qu'au redémarrage. \textbf{Laissez-le sur \off{} quand vous utilisez la page}, sinon il brouille les tests de l'étape 3. \\
+\pasc{pslgris}{3} & \sw{A1} \sw{A2} \sw{A3} & \textbf{Réservés.} Prévus pour choisir individuellement les voies d'attraction 1, 2 et 3. Pas encore lus par le logiciel : toutes les voies s'allument ensemble quelle que soit leur position. \\
+ & \sw{EXT} & \textbf{Réservé.} Prévu pour la sortie d'attraction externe (bornier \og Ext \fg{}). Pas encore lu : cette sortie s'allume avec les autres. \\
+ & \sw{HI} & \textbf{Réservé.} Prévu pour un fonctionnement sur alimentation secteur (wifi maintenu, envoi des photos). Aujourd'hui, la Mothbox se comporte exactement comme en service normal. \\
+\pasc{pslvert}{4} & \sw{DEBUG} & \textbf{Mode réglage.} Wifi, page web, aucune mise en veille ni capture automatique (\cref{chpas}). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{astuce}[En pratique]
+Laissez \sw{C1}, \sw{A1}, \sw{A2}, \sw{A3}, \sw{EXT} et \sw{HI} sur \off. Seuls \sw{Active}, \sw{DEBUG} et, si besoin, \sw{U1} servent au quotidien.
+\end{astuce}
 
 % ---------------------------------------------------------------------
 \chapter{Les quatre positions à connaître}
@@ -147,7 +178,7 @@ Les switches ne sont lus qu'\textbf{au démarrage} de la Mothbox. Après avoir c
 \end{figure}
 
 % ---------------------------------------------------------------------
-\chapter{Régler la Mothbox pas à pas}
+\chapter{Régler la Mothbox pas à pas}\label{chpas}
 % ---------------------------------------------------------------------
 
 \section{Se connecter}
