@@ -316,18 +316,22 @@ La Mothbox ne prend aucune photo & Vérifier que \sw{Active} est sur \on{} et \s
 \chapter{Pour l'équipe : préparer une carte SD}
 % ---------------------------------------------------------------------
 
-L'image \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.zip} contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage. Aucun wifi n'y est enregistré.
+Tout se fait avec un logiciel gratuit, \textbf{Raspberry Pi Imager} (Windows, macOS ou Linux, à télécharger sur \texttt{raspberrypi.com/software}). Aucune commande à taper.
+
+Le fichier à utiliser est \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.zip}. Il contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et aucun wifi enregistré. \textbf{Inutile de le décompresser} : Raspberry Pi Imager lit directement le \fichier{.zip}.
 
 \begin{enumerate}[label=\protect\pas{\arabic*},leftmargin=2.2em,itemsep=5pt]
-  \item Ouvrir \textbf{Raspberry Pi Imager}, choisir \emph{Raspberry Pi 5}, puis \emph{Utiliser une image personnalisée} et sélectionner le fichier \fichier{.zip}.
-  \item Choisir la carte SD (16\,Go minimum) et écrire. Ne pas appliquer de personnalisation de l'OS.
-  \item Insérer la carte dans la Mothbox et suivre le \cref{chmanuel} ou le chapitre 3.
+  \item Insérer la carte SD (16\,Go minimum) dans l'ordinateur.
+  \item Ouvrir Raspberry Pi Imager. Dans \emph{Appareil}, choisir \textbf{Raspberry Pi 5}.
+  \item Dans \emph{Système d'exploitation}, descendre tout en bas, choisir \textbf{Utiliser une image personnalisée}, puis sélectionner le fichier \fichier{.zip}.
+  \item Dans \emph{Stockage}, choisir la carte SD. Vérifier sa taille : c'est elle qui sera entièrement effacée.
+  \item Cliquer sur \emph{Suivant}. À la question sur la personnalisation de l'OS, répondre \textbf{Non}.
+  \item Confirmer, puis attendre la fin de l'écriture et de la vérification (environ 10 minutes). Retirer la carte.
+  \item Insérer la carte dans la Mothbox et suivre le \cref{chpas} (réglage avec un téléphone) ou le \cref{chmanuel} (mode manuel).
 \end{enumerate}
 
-Sous Linux, en ligne de commande, après décompression :
-\begin{lstlisting}[language=bash,numbers=none]
-sudo dd if=mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.img of=/dev/sdX bs=4M status=progress conv=fsync
-\end{lstlisting}
-\texttt{/dev/sdX} est la carte SD : vérifiez-le avec \texttt{lsblk}, une erreur efface le mauvais disque.
+\begin{attention}[Ne pas personnaliser l'OS]
+Si Raspberry Pi Imager propose de régler un nom d'utilisateur, un mot de passe ou un wifi, refusez : ces réglages modifieraient l'image et pourraient empêcher la Mothbox de créer son propre wifi.
+\end{attention}
 
 \end{document}
