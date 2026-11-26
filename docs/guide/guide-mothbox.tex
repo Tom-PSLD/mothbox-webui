@@ -7,8 +7,9 @@
 
 \hypersetup{pdftitle={Paramétrer sa Mothbox avec un téléphone},
   pdfsubject={Guide d'utilisation de l'interface de terrain Mothbox}}
-\fancyhead[L]{\small\sffamily\color{pslgris}Mothbox — Guide de terrain}
+\fancyhead[L]{\small\sffamily\color{pslgris}Mothbox, guide de terrain}
 \graphicspath{{annotees/}}
+\captionsetup{labelsep=colon}
 \newcommand{\sw}[1]{\textsf{\bfseries #1}}
 \newcommand{\on}{\textcolor{pslvert}{\textsf{\bfseries ON}}}
 \newcommand{\off}{\textcolor{pslrouge}{\textsf{\bfseries OFF}}}
@@ -24,7 +25,7 @@
 \begin{tikzpicture}[remember picture,overlay]
   \fill[pslvert] (current page.north west) rectangle ([yshift=-8.2cm]current page.north east);
   \fill[pslorange] ([yshift=-8.2cm]current page.north west) rectangle ([yshift=-8.5cm]current page.north east);
-  \node[anchor=north west,text=white!85!pslvert,font=\sffamily\small,inner sep=0pt] at ([xshift=2.4cm,yshift=-1.7cm]current page.north west) {Mothbox Pro — PSL3D};
+  \node[anchor=north west,text=white!85!pslvert,font=\sffamily\small,inner sep=0pt] at ([xshift=2.4cm,yshift=-1.7cm]current page.north west) {Mothbox Pro, PSL3D};
   \node[anchor=north west,text=white,font=\sffamily\bfseries\fontsize{30}{36}\selectfont,inner sep=0pt,text width=16.5cm] at ([xshift=2.4cm,yshift=-2.6cm]current page.north west) {Paramétrer sa Mothbox avec un téléphone};
   \node[anchor=north west,text=white!90!pslvert,font=\sffamily\Large,inner sep=0pt,text width=16cm] at ([xshift=2.4cm,yshift=-6.25cm]current page.north west) {Deux switches, un wifi, une page web};
 \end{tikzpicture}
@@ -46,7 +47,7 @@
 \textbf{Pour qui} & Toute personne qui installe une Mothbox sur le terrain, même sans aucune connaissance en informatique \\
 \textbf{Il faut} & Une Mothbox avec l'image \texttt{5.2.1-webui}, un téléphone (iPhone ou Android) \\
 \textbf{Auteur} & Tom Penfornis \\
-\textbf{Version} & 1.0 --- 26 novembre 2026 \\
+\textbf{Version} & 1.0, 26 novembre 2026 \\
 \bottomrule
 \end{tabularx}}
 \end{titlepage}
@@ -97,7 +98,7 @@ La carte Mothbox porte quatre rangées de petits switches. Pour l'utilisation co
 \begin{description}[leftmargin=0pt,itemsep=8pt]
   \item[\pas{1} Heures (01 à 00)] 24 switches, un par heure. Ils ne servent qu'en mode manuel (\cref{chmanuel}).
   \item[\pas{2} Jours + Active] 7 switches de jours (Mo à Su), utilisés en mode manuel, et le switch \sw{Active}, \textbf{le plus important} : sans lui, la Mothbox ne fait rien.
-  \item[\pas{3} Mode] \sw{U1}, \sw{C1}, \sw{A1}–\sw{A3}, \sw{EXT}, \sw{HI} et \sw{DEBUG}. Leur rôle est détaillé juste en dessous.
+  \item[\pas{3} Mode] \sw{U1}, \sw{C1}, \sw{A1} à \sw{A3}, \sw{EXT}, \sw{HI} et \sw{DEBUG}. Leur rôle est détaillé juste en dessous.
 \end{description}
 \end{minipage}
 \caption{Les trois zones de switches de la carte Mothbox v5.0.5.}
@@ -196,7 +197,7 @@ C'est normal : la Mothbox n'est pas reliée à Internet. Choisissez \emph{Rester
 
 La page est en français ou en anglais selon la langue du téléphone ; le bouton \textsf{EN}/\textsf{FR} en haut à droite permet de changer. Les étapes se suivent avec le bouton \emph{Étape suivante}, mais on peut aussi toucher directement un numéro en haut.
 
-\section{Étape 1 — Heure et lieu}
+\section{Étape 1 : Heure et lieu}
 
 \begin{minipage}[t]{0.36\textwidth}
 \vspace{0pt}\includegraphics[width=\linewidth]{ecran_etape1.jpg}
@@ -211,7 +212,7 @@ La Mothbox n'a pas d'accès à Internet pour se mettre à l'heure : elle prend c
 Si le fuseau n'a pas pu être détecté, le bouton reste grisé tant qu'aucune ville n'est choisie.
 \end{minipage}
 
-\section{Étape 2 — Planning des captures}
+\section{Étape 2 : Planning des captures}
 
 \begin{minipage}[t]{0.36\textwidth}
 \vspace{0pt}\includegraphics[width=\linewidth]{ecran_etape2.jpg}
@@ -229,7 +230,7 @@ Le planning dit quand la Mothbox se réveille pour allumer sa lumière et photog
 \textbf{Réglages avancés} : nom de la Mothbox (il donne aussi son nom au wifi, après redémarrage) et caractéristiques de la batterie, pour un pourcentage juste.
 \end{minipage}
 
-\section{Étape 3 — Tester}
+\section{Étape 3 : Tester}
 
 \begin{minipage}[t]{0.36\textwidth}
 \vspace{0pt}\includegraphics[width=\linewidth]{ecran_etape3.jpg}
@@ -246,7 +247,7 @@ Tout s'éteint seul au bout de 5 minutes, ou 30 secondes après la fermeture de 
 \end{astuce}
 \end{minipage}
 
-\section{Étape 4 — Mettre en service}
+\section{Étape 4 : Mettre en service}
 
 \begin{minipage}[t]{0.36\textwidth}
 \vspace{0pt}\includegraphics[width=\linewidth]{ecran_etape4.jpg}
