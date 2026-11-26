@@ -6,3 +6,4 @@ docs/guide/*.aux
 docs/guide/*.log
 docs/guide/*.toc
 docs/guide/*.out
+docs/guide/*.log
