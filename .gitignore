@@ -2,3 +2,7 @@ __pycache__/
 .venv/
 sim/
 .pytest_cache/
+docs/guide/*.aux
+docs/guide/*.log
+docs/guide/*.toc
+docs/guide/*.out
