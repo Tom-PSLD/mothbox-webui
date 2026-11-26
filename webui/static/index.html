@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mothbox</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">◐</span>
+    <div>
+      <div class="brand-name">Mothbox</div>
+      <div class="box-name" id="box-name">…</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="pill" id="debug-pill"></span>
+    <button class="lang" id="lang-btn" type="button">EN</button>
+  </div>
+</header>
+
+<nav class="steps" id="steps">
+  <button type="button" data-step="1"><span class="num">1</span><span data-i18n="step.clock"></span></button>
+  <button type="button" data-step="2"><span class="num">2</span><span data-i18n="step.schedule"></span></button>
+  <button type="button" data-step="3"><span class="num">3</span><span data-i18n="step.test"></span></button>
+  <button type="button" data-step="4"><span class="num">4</span><span data-i18n="step.finish"></span></button>
+</nav>
+
+<main>
+  <section class="step" id="step-1">
+    <h1 data-i18n="clock.title"></h1>
+    <p class="hint" data-i18n="clock.intro"></p>
+    <div class="card">
+      <div class="row"><span data-i18n="clock.phone_time"></span><strong id="phone-time"></strong></div>
+      <div class="row"><span data-i18n="clock.box_time"></span><strong id="box-time"></strong></div>
+      <div class="row"><span data-i18n="clock.detected"></span><strong id="tz-detected"></strong></div>
+    </div>
+    <div class="card">
+      <label class="field"><span data-i18n="clock.region"></span><select id="tz-region"></select></label>
+      <label class="field"><span data-i18n="clock.city"></span><select id="tz-city"></select></label>
+      <button class="primary" id="sync-btn" type="button" data-i18n="clock.sync"></button>
+      <p class="result" id="sync-result" hidden></p>
+    </div>
+    <button class="next" type="button" data-goto="2" data-i18n="nav.next"></button>
+  </section>
+
+  <section class="step" id="step-2" hidden>
+    <h1 data-i18n="schedule.title"></h1>
+    <p class="hint" data-i18n="schedule.intro"></p>
+    <div class="alert" id="switch-alert" hidden>
+      <strong data-i18n="schedule.switch_alert_title"></strong>
+      <p data-i18n="schedule.switch_alert_body"></p>
+      <p id="switch-schedule-text"></p>
+    </div>
+    <fieldset id="schedule-form">
+      <div class="card">
+        <h2 data-i18n="schedule.days"></h2>
+        <div class="chips days" id="days"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="schedule.hours"></h2>
+        <p class="hint small" data-i18n="schedule.hours_hint"></p>
+        <div class="chips hours" id="hours"></div>
+      </div>
+      <details class="card">
+        <summary data-i18n="schedule.more"></summary>
+        <label class="field"><span data-i18n="schedule.minute"></span><input id="minute" type="number" min="0" max="59" inputmode="numeric"></label>
+        <label class="field"><span data-i18n="schedule.runtime"></span><input id="runtime" type="number" min="1" max="1439" inputmode="numeric"></label>
+      </details>
+      <button class="primary" id="save-schedule" type="button" data-i18n="schedule.save"></button>
+    </fieldset>
+    <p class="next-session" id="next-session"></p>
+
+    <details class="card advanced">
+      <summary data-i18n="adv.title"></summary>
+      <label class="check"><input type="checkbox" id="autoname"><span data-i18n="adv.autoname"></span></label>
+      <label class="field"><span data-i18n="adv.name"></span><input id="name" type="text" maxlength="24" autocomplete="off"></label>
+      <h2 data-i18n="adv.battery"></h2>
+      <label class="field"><span data-i18n="adv.bat_voltage"></span><input id="bat_voltage" type="number" step="0.1" inputmode="decimal"></label>
+      <label class="field"><span data-i18n="adv.bat_Wh"></span><input id="bat_Wh" type="number" step="1" inputmode="decimal"></label>
+      <label class="field"><span data-i18n="adv.bat_80perVolts"></span><input id="bat_80perVolts" type="number" step="0.1" inputmode="decimal"></label>
+      <label class="field"><span data-i18n="adv.bat_20perVolts"></span><input id="bat_20perVolts" type="number" step="0.1" inputmode="decimal"></label>
+      <button class="secondary" id="save-advanced" type="button" data-i18n="adv.save"></button>
+    </details>
+    <button class="next" type="button" data-goto="3" data-i18n="nav.next"></button>
+  </section>
+
+  <section class="step" id="step-3" hidden>
+    <h1 data-i18n="test.title"></h1>
+    <p class="hint" data-i18n="test.intro"></p>
+    <div class="card">
+      <div class="toggle-row" data-output="attract">
+        <span data-i18n="test.attract"></span><span class="countdown"></span>
+        <button type="button" class="switch" aria-pressed="false"></button>
+      </div>
+      <div class="toggle-row" data-output="flash">
+        <span data-i18n="test.flash"></span><span class="countdown"></span>
+        <button type="button" class="switch" aria-pressed="false"></button>
+      </div>
+      <div class="toggle-row" data-output="12v">
+        <span data-i18n="test.12v"></span><span class="countdown"></span>
+        <button type="button" class="switch" aria-pressed="false"></button>
+      </div>
+      <p class="hint small" data-i18n="test.safety"></p>
+    </div>
+    <div class="card">
+      <button class="primary" id="photo-btn" type="button" data-i18n="test.photo"></button>
+      <img id="photo" alt="" hidden>
+      <p class="hint small" id="photo-hint" data-i18n="test.photo_hint" hidden></p>
+    </div>
+    <div class="card sensors">
+      <h2 data-i18n="test.sensors"></h2>
+      <div class="grid">
+        <div><span data-i18n="test.battery"></span><strong id="s-battery">–</strong></div>
+        <div><span data-i18n="test.temp"></span><strong id="s-temp">–</strong></div>
+        <div><span data-i18n="test.disk"></span><strong id="s-disk">–</strong></div>
+        <div><span data-i18n="test.gps"></span><strong id="s-gps">–</strong></div>
+      </div>
+    </div>
+    <button class="next" type="button" data-goto="4" data-i18n="nav.next"></button>
+  </section>
+
+  <section class="step" id="step-4" hidden>
+    <h1 data-i18n="finish.title"></h1>
+    <div class="card recap">
+      <div class="row"><span data-i18n="finish.name"></span><strong id="r-name"></strong></div>
+      <div class="row"><span data-i18n="finish.timezone"></span><strong id="r-tz"></strong></div>
+      <div class="row"><span data-i18n="finish.schedule"></span><strong id="r-schedule"></strong></div>
+      <div class="row"><span data-i18n="finish.next"></span><strong id="r-next"></strong></div>
+    </div>
+    <div class="card big-instruction" id="debug-on-box">
+      <div class="switch-illus" aria-hidden="true"><span class="knob"></span></div>
+      <p data-i18n="finish.flip"></p>
+      <p class="hint small" data-i18n="finish.waiting"></p>
+    </div>
+    <div class="card ready" id="debug-off-box" hidden>
+      <p data-i18n="finish.ready"></p>
+      <button class="primary" id="reboot-btn" type="button" data-i18n="finish.reboot"></button>
+    </div>
+    <div class="card done" id="rebooting-box" hidden>
+      <p data-i18n="finish.rebooting"></p>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
