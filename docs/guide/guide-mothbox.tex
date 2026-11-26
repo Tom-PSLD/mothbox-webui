@@ -319,12 +319,12 @@ La Mothbox ne prend aucune photo & Vérifier que \sw{Active} est sur \on{} et \s
 
 Tout se fait avec un logiciel gratuit, \textbf{Raspberry Pi Imager} (Windows, macOS ou Linux, à télécharger sur \texttt{raspberrypi.com/software}). Aucune commande à taper.
 
-Le fichier à utiliser est \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.zip}. Il contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et aucun wifi enregistré. \textbf{Inutile de le décompresser} : Raspberry Pi Imager lit directement le \fichier{.zip}.
+Le fichier à utiliser est \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.img.xz}, à télécharger sur \texttt{github.com/Tom-PSLD/mothbox-webui/releases}. Il contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et aucun wifi enregistré. \textbf{Inutile de le décompresser} : Raspberry Pi Imager lit directement le \fichier{.img.xz}.
 
 \begin{enumerate}[label=\protect\pas{\arabic*},leftmargin=2.2em,itemsep=5pt]
   \item Insérer la carte SD (16\,Go minimum) dans l'ordinateur.
   \item Ouvrir Raspberry Pi Imager. Dans \emph{Appareil}, choisir \textbf{Raspberry Pi 5}.
-  \item Dans \emph{Système d'exploitation}, descendre tout en bas, choisir \textbf{Utiliser une image personnalisée}, puis sélectionner le fichier \fichier{.zip}.
+  \item Dans \emph{Système d'exploitation}, descendre tout en bas, choisir \textbf{Utiliser une image personnalisée}, puis sélectionner le fichier \fichier{.img.xz}.
   \item Dans \emph{Stockage}, choisir la carte SD. Vérifier sa taille : c'est elle qui sera entièrement effacée.
   \item Cliquer sur \emph{Suivant}. À la question sur la personnalisation de l'OS, répondre \textbf{Non}.
   \item Confirmer, puis attendre la fin de l'écriture et de la vérification (environ 10 minutes). Retirer la carte.
