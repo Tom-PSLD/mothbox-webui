@@ -319,7 +319,7 @@ La Mothbox ne prend aucune photo & Vérifier que \sw{Active} est sur \on{} et \s
 
 Tout se fait avec un logiciel gratuit, \textbf{Raspberry Pi Imager} (Windows, macOS ou Linux, à télécharger sur \texttt{raspberrypi.com/software}). Aucune commande à taper.
 
-Le fichier à utiliser est \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.img.xz}, à télécharger sur \texttt{github.com/Tom-PSLD/mothbox-webui/releases}. Il contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et aucun wifi enregistré. \textbf{Inutile de le décompresser} : Raspberry Pi Imager lit directement le \fichier{.img.xz}.
+Le fichier à utiliser est \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-27-v4.img.xz}, à télécharger sur \texttt{github.com/Tom-PSLD/mothbox-webui/releases}. Il contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et aucun wifi enregistré. \textbf{Inutile de le décompresser} : Raspberry Pi Imager lit directement le \fichier{.img.xz}.
 
 \begin{enumerate}[label=\protect\pas{\arabic*},leftmargin=2.2em,itemsep=5pt]
   \item Insérer la carte SD (16\,Go minimum) dans l'ordinateur.
@@ -333,6 +333,10 @@ Le fichier à utiliser est \fichier{mothbox_Pro_Pi5_v5.2.1-webui_2026-11-26.img.
 
 \begin{attention}[Ne pas personnaliser l'OS]
 Si Raspberry Pi Imager propose de régler un nom d'utilisateur, un mot de passe ou un wifi, refusez : ces réglages modifieraient l'image et pourraient empêcher la Mothbox de créer son propre wifi.
+\end{attention}
+
+\begin{attention}[Premier démarrage d'un Raspberry Pi neuf]
+Au premier allumage, la Mothbox redémarre une fois toute seule (agrandissement de la carte SD). Au redémarrage suivant, elle écrit une seule fois ses réglages dans la mémoire de démarrage du Raspberry Pi : ne pas couper l'alimentation pendant les 30 secondes qui suivent un redémarrage. Si elle reste ensuite éteinte, un appui sur le bouton PSW la rallume.
 \end{attention}
 
 \end{document}

@@ -11,6 +11,8 @@ Sur le terrain, plus besoin de VNC ni de modifier un fichier CSV : on bascule le
 3. **Tester** : attracteur UV, flash, 12 V, photo test affichée sur le téléphone (mise au point, cadrage), batterie, température, espace libre, GPS.
 4. **Terminer** : récapitulatif, puis Debug sur OFF et redémarrage.
 
+Boutons **Redémarrer** et **Éteindre** toujours visibles en bas de page (confirmation, avec l'heure du prochain réveil automatique).
+
 Interface en français et en anglais (langue du téléphone détectée). Le wifi de chaque box s'appelle `Mothbox-<nom>` pour distinguer plusieurs boxes sur un même site.
 
 ## Installation : image prête à flasher
@@ -19,7 +21,9 @@ Télécharger l'image dans les [Releases](../../releases) et l'écrire sur la ca
 
 L'image contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et **aucun réseau wifi enregistré** (seul le hotspot `Mothbox-<nom>` est préconfiguré).
 
-> **Image du 26/11 retirée** : sur un Raspberry Pi 5 dont l'EEPROM n'avait jamais été configurée par Mothbox, le `Scheduler.py` d'origine réécrivait l'EEPROM avec `BOOT_ORDER=0` (au lieu de `0xf461`) ; la box ne redémarrait plus et le wifi n'apparaissait jamais. Corrigé dans l'image du 27/11. Pour réparer une box touchée : Raspberry Pi Imager → Misc utility images → Bootloader (Pi 5 family) → SD Card Boot, démarrer la box sur cette carte jusqu'au clignotement rapide de la LED verte, puis flasher l'image.
+> **Images du 26/11 et du 27/11 retirées** : sur un Raspberry Pi 5 neuf, le premier démarrage corrompait l'EEPROM (LED : 3 clignotements longs + 1 court, ou 8 clignotements). Le `Scheduler.py` d'origine écrivait l'EEPROM avec `flashrom` pendant que le script d'agrandissement de la carte SD redémarrait le Pi, et l'image d'origine pouvait aussi installer un bootloader plus ancien que celui du Pi. Corrigé dans l'image `2026-11-27-v4` : aucune écriture au premier démarrage, écriture par `recovery.bin` (reprise automatique en cas de coupure), version du bootloader conservée, mise à jour automatique du bootloader désactivée.
+> Premier démarrage : la box redémarre une fois toute seule ; au redémarrage suivant elle écrit ses réglages EEPROM (ne pas couper l'alimentation pendant 30 s ; si elle reste éteinte, appuyer sur PSW).
+> **Box déjà touchée** : Raspberry Pi Imager → Misc utility images → Bootloader (Pi 5 family) → SD Card Boot, démarrer la box sur cette carte jusqu'à l'écran vert / clignotement rapide de la LED verte, puis flasher l'image v4.
 
 ## Guides
 
@@ -77,6 +81,8 @@ No more VNC or CSV editing in the field: flip the **Debug** switch ON, join the 
 3. **Test**: UV attractor, flash, 12 V, test photo shown on the phone (focus, framing), battery, temperature, free space, GPS.
 4. **Finish**: summary, then Debug OFF and reboot.
 
+**Restart** and **Shut down** buttons always visible at the bottom of the page (with confirmation and the next automatic wake-up time).
+
 French and English interface (phone language detected). Each box's wifi is named `Mothbox-<name>` to tell several boxes apart on one site.
 
 ## Install: ready-to-flash image
@@ -85,7 +91,9 @@ Download the image from the [Releases](../../releases) and write it to the micro
 
 The image contains the original Mothbox 5.2.1 system plus the setup page, and **no saved wifi network** (only the `Mothbox-<name>` hotspot is preconfigured).
 
-> **2026-11-26 image withdrawn**: on a Raspberry Pi 5 whose EEPROM had never been configured by Mothbox, the stock `Scheduler.py` rewrote the EEPROM with `BOOT_ORDER=0` (instead of `0xf461`); the box no longer rebooted and the wifi never appeared. Fixed in the 2026-11-27 image. To repair an affected box: Raspberry Pi Imager → Misc utility images → Bootloader (Pi 5 family) → SD Card Boot, boot the box from that card until the green LED blinks fast, then flash the image.
+> **2026-11-26 and 2026-11-27 images withdrawn**: on a new Raspberry Pi 5 the first boot corrupted the EEPROM (LED: 3 long + 1 short flashes, or 8 flashes). The stock `Scheduler.py` wrote the EEPROM with `flashrom` while the SD card resize script was rebooting the Pi, and the stock image could also install a bootloader older than the board's own. Fixed in the `2026-11-27-v4` image: no write during the first boot, write through `recovery.bin` (retried automatically after a power cut), bootloader version kept, automatic bootloader updates disabled.
+> First boot: the box reboots once by itself; on the next restart it writes its EEPROM settings (do not cut the power for 30 s; if it stays off, press PSW).
+> **Already affected box**: Raspberry Pi Imager → Misc utility images → Bootloader (Pi 5 family) → SD Card Boot, boot the box from that card until the screen turns green / the green LED blinks fast, then flash the v4 image.
 
 ## Guides
 
