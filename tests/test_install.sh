@@ -10,6 +10,9 @@ mkdir -p "$ROOT/home/pi/Desktop" "$ROOT/usr/bin" "$ROOT/etc/systemd/system/multi
 cp -r "$HERE/reference_v5.2.1/Mothbox" "$ROOT/home/pi/Desktop/Mothbox"
 cp -r "$HERE/reference_v5.2.1/mothbox_custom" "$ROOT/boot/firmware/mothbox_custom"
 cp "$HERE/reference_v5.2.1/accesspopup" "$ROOT/usr/bin/accesspopup"
+ln -s /lib/systemd/system/rpi-eeprom-update.service "$ROOT/etc/systemd/system/multi-user.target.wants/rpi-eeprom-update.service"
+mkdir -p "$ROOT/etc/default"
+printf 'FIRMWARE_RELEASE_STATUS="default"\nRPI_EEPROM_USE_FLASHROM=1\n' > "$ROOT/etc/default/rpi-eeprom-update"
 for p in STARLINK LIB-7449855 AccessPopup preconfigured; do
   echo "psk=secret" > "$ROOT/etc/NetworkManager/system-connections/$p.nmconnection"
 done
@@ -43,6 +46,12 @@ grep -q '(\\w+)=(\\d+)' "$M/Scheduler.py" && fail "old EEPROM regex still there"
 python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$M/Scheduler.py" || fail "Scheduler syntax"
 grep -q 'mothbox-webui keep-profile' "$ROOT/usr/bin/accesspopup" || fail "accesspopup keep-profile"
 grep -q 'mothbox-webui add-profile' "$ROOT/usr/bin/accesspopup" || fail "accesspopup add-profile"
+[ -L "$ROOT/etc/systemd/system/multi-user.target.wants/rpi-eeprom-update.service" ] && fail "eeprom update service still enabled"
+[ "$(readlink "$ROOT/etc/systemd/system/rpi-eeprom-update.service")" = "/dev/null" ] || fail "eeprom update service not masked"
+EDEF="$ROOT/etc/default/rpi-eeprom-update"
+grep -q '^FIRMWARE_RELEASE_STATUS="default"$' "$EDEF" || fail "eeprom default status lost"
+[ "$(grep -c '^RPI_EEPROM_USE_FLASHROM=' "$EDEF")" -eq 1 ] || fail "flashrom line count"
+grep -q '^RPI_EEPROM_USE_FLASHROM=0$' "$EDEF" || fail "flashrom not disabled"
 
 SSID=$(cd "$ROOT" && NAMEFILE="$ROOT/boot/firmware/mothbox_custom/system/controls/name.txt" bash -c "
   $(sed -n '/# mothbox-webui ssid begin/,/# mothbox-webui ssid end/p' "$ROOT/usr/bin/accesspopup")

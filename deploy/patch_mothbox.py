@@ -5,6 +5,10 @@ scheduler <Scheduler.py>      EEPROM: only change POWER_OFF_ON_HALT / WAKE_ON_GP
                               keep every other line (BOOT_ORDER=0xf461, [all]...).
                               The stock regex (\\w+)=(\\d+) turned BOOT_ORDER=0xf461
                               into BOOT_ORDER=0 and dropped [all].
+                              Never writes during the first boot: the PiShrink
+                              rc.local reboots mid-write and bricks the EEPROM.
+                              Keeps the bootloader version already on the board
+                              (never downgrades: 8 flashes SDRAM on recent Pi 5).
 accesspopup <accesspopup>     Hotspot: do not delete the AP profile when wlan0 is
                               only temporarily unavailable, and create the profile
                               without needing wlan0 to be up.
@@ -44,9 +48,71 @@ def merge_eeprom_config(current_text, wanted):
     return "\\n".join(lines) + "\\n"
 
 
+def eeprom_blocked_by_first_boot(rc_local="/etc/rc.local"):
+    """True while the first-boot rootfs expansion (PiShrink rc.local) is
+    pending: it reboots a few seconds after boot, never write the EEPROM then."""
+    try:
+        with open(rc_local) as f:
+            return "do_expand_rootfs" in f.read()
+    except OSError:
+        return False
+
+
+def eeprom_build_timestamp(path):
+    try:
+        with open(path, "rb") as f:
+            match = re.search(rb"BUILD_TIMESTAMP=(\\d+)", f.read())
+    except OSError:
+        return None
+    return int(match.group(1)) if match else None
+
+
+def eeprom_current_timestamp(dt="/proc/device-tree/chosen/bootloader/build-timestamp"):
+    """Build timestamp of the running bootloader, like rpi-eeprom-update."""
+    try:
+        with open(dt, "rb") as f:
+            value = int.from_bytes(f.read(), "big")
+        if value:
+            return value
+    except OSError:
+        pass
+    try:
+        out = subprocess.check_output(["vcgencmd", "bootloader_version"]).decode("utf-8")
+        return int(re.search(r"timestamp\\s+(\\d+)", out).group(1))
+    except Exception:
+        return None
+
+
+def eeprom_source_image(dump="/tmp/eeprom_current.bin"):
+    """Bootloader image the new config is applied to. Prefer the one already on
+    the board (read only with flashrom) so its version never changes: a
+    downgrade bricks recent Pi 5 boards (8 flashes, SDRAM). None if unsure."""
+    current = eeprom_current_timestamp()
+    if current is None:
+        return None
+    try:
+        subprocess.check_output(["sudo", "flashrom", "-p",
+                                 "linux_spi:dev=/dev/spidev10.0,spispeed=16000",
+                                 "-r", dump])
+        if os.path.getsize(dump) == 2097152 and eeprom_build_timestamp(dump) == current:
+            return dump
+    except Exception:
+        pass
+    try:
+        latest = subprocess.check_output(["rpi-eeprom-update", "-l"]).decode("utf-8").strip()
+    except Exception:
+        return None
+    if (eeprom_build_timestamp(latest) or 0) >= current:
+        return latest
+    return None
+
+
 def set_eeprom_settings(settings):
     """Applies the settings that differ from the current EEPROM, without
     touching anything else (BOOT_ORDER, sections...)."""
+    if eeprom_blocked_by_first_boot():
+        print("First boot rootfs expansion pending, EEPROM update postponed")
+        return
     current_text = subprocess.check_output(["sudo", "rpi-eeprom-config"]).decode("utf-8")
     current = {}
     for line in current_text.splitlines():
@@ -64,7 +130,11 @@ def set_eeprom_settings(settings):
     with open("/tmp/eeprom_config.txt", "w") as f:
         f.write(config_content)
 
-    subprocess.run(["sudo", "rpi-eeprom-config", "--apply", "/tmp/eeprom_config.txt"])
+    source = eeprom_source_image()
+    if source is None:
+        print("Current bootloader could not be read and the packaged one is older: EEPROM left untouched")
+        return
+    subprocess.run(["sudo", "rpi-eeprom-config", "--apply", "/tmp/eeprom_config.txt", source])
 
 
 '''

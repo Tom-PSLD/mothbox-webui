@@ -18,7 +18,7 @@ fi
 MOTHBOX="$ROOT/home/pi/Desktop/Mothbox"
 [ -d "$MOTHBOX" ] || { echo "Mothbox folder not found: $MOTHBOX" >&2; exit 1; }
 
-echo "1/8 copy webui"
+echo "1/9 copy webui"
 rm -rf "$MOTHBOX/webui"
 mkdir -p "$MOTHBOX/webui"
 ( cd "$HERE/webui" && find . -type f ! -path '*/__pycache__/*' -print0 | while IFS= read -r -d '' f; do
@@ -26,13 +26,13 @@ mkdir -p "$MOTHBOX/webui"
     cp "$f" "$MOTHBOX/webui/$f"
   done )
 
-echo "2/8 systemd service (not enabled)"
+echo "2/9 systemd service (not enabled)"
 install -D -m 644 "$HERE/deploy/mothbox-webui.service" "$ROOT/etc/systemd/system/mothbox-webui.service"
 
-echo "3/8 captive portal DNS"
+echo "3/9 captive portal DNS"
 install -D -m 644 "$HERE/deploy/captive-dnsmasq.conf" "$ROOT/etc/NetworkManager/dnsmasq-shared.d/mothbox-captive.conf"
 
-echo "4/8 DebugMode.py"
+echo "4/9 DebugMode.py"
 if ! grep -q "mothbox-webui" "$MOTHBOX/DebugMode.py"; then
   cat >> "$MOTHBOX/DebugMode.py" <<'PY'
 
@@ -41,7 +41,7 @@ subprocess.run(["sudo", "systemctl", "start", "mothbox-webui"], check=False)
 PY
 fi
 
-echo "5/8 hotspot name Mothbox-<name>"
+echo "5/9 hotspot name Mothbox-<name>"
 AP="$ROOT/usr/bin/accesspopup"
 if [ -f "$AP" ] && ! grep -q "mothbox-webui" "$AP"; then
   BLOCK="$(mktemp)"
@@ -61,17 +61,17 @@ SH
   rm -f "$BLOCK"
 fi
 
-echo "6/8 Scheduler.py: EEPROM fix (keep BOOT_ORDER)"
+echo "6/9 Scheduler.py: EEPROM fix (keep BOOT_ORDER)"
 python3 "$HERE/deploy/patch_mothbox.py" scheduler "$MOTHBOX/Scheduler.py"
 python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$MOTHBOX/Scheduler.py"
 
-echo "7/8 accesspopup: keep AP profile, create it without wlan0 up"
+echo "7/9 accesspopup: keep AP profile, create it without wlan0 up"
 if [ -f "$AP" ]; then
   python3 "$HERE/deploy/patch_mothbox.py" accesspopup "$AP"
   bash -n "$AP"
 fi
 
-echo "8/8 replace saved wifi networks by a clean hotspot profile"
+echo "8/9 replace saved wifi networks by a clean hotspot profile"
 NMC="$ROOT/etc/NetworkManager/system-connections"
 mkdir -p "$NMC"
 for f in "$NMC"/*; do
@@ -87,5 +87,14 @@ PSK=$(sed -n "s/^ap_pw='\(.*\)'$/\1/p" "$AP" 2>/dev/null | head -1)
 python3 "$HERE/deploy/patch_mothbox.py" ap-profile "$NMC/AccessPopup.nmconnection" \
   "$SSID" "$PSK" "192.168.50.5/24" "192.168.50.254"
 echo "   + AccessPopup.nmconnection (ssid $SSID)"
+
+echo "9/9 bootloader EEPROM: no auto update, write through recovery.bin (power-loss safe)"
+rm -f "$ROOT/etc/systemd/system/multi-user.target.wants/rpi-eeprom-update.service"
+ln -sfn /dev/null "$ROOT/etc/systemd/system/rpi-eeprom-update.service"
+EDEF="$ROOT/etc/default/rpi-eeprom-update"
+mkdir -p "$(dirname "$EDEF")"
+touch "$EDEF"
+sed -i '/^RPI_EEPROM_USE_FLASHROM=/d' "$EDEF"
+echo "RPI_EEPROM_USE_FLASHROM=0" >> "$EDEF"
 
 echo "done"

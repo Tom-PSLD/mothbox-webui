@@ -1,5 +1,7 @@
 import ast
 import importlib.util
+import os
+import tempfile
 import re
 import subprocess
 from pathlib import Path
@@ -14,28 +16,60 @@ spec.loader.exec_module(patch)
 FACTORY = "[all]\nBOOT_UART=1\nBOOT_ORDER=0xf461\nNET_INSTALL_AT_POWER_ON=1\n"
 
 
-def load_eeprom_functions(src, eeprom_text):
+EEPROM_SIZE = 2097152
+
+
+def eeprom_bin(path, ts):
+    data = f"xx BUILD_TIMESTAMP={ts}\n".encode()
+    Path(path).write_bytes(data + b"\0" * (EEPROM_SIZE - len(data)))
+    return str(path)
+
+
+def load_eeprom_functions(src, eeprom_text, current_ts=200, flashrom_ts=200, latest_ts=100):
     """Extracts the EEPROM functions of a patched Scheduler.py and runs them
-    against a fake rpi-eeprom-config."""
+    against fake rpi-eeprom-config / vcgencmd / flashrom / rpi-eeprom-update."""
     tree = ast.parse(src)
     funcs = [n for n in tree.body if isinstance(n, ast.FunctionDef)
              and ("eeprom" in n.name)]
     module = ast.Module(body=funcs, type_ignores=[])
     applied = {}
+    tmp = Path(tempfile.mkdtemp())
+    latest = eeprom_bin(tmp / "pieeprom-latest.bin", latest_ts)
 
     class FakeSubprocess:
         @staticmethod
         def check_output(cmd):
-            assert cmd == ["sudo", "rpi-eeprom-config"]
-            return eeprom_text.encode()
+            if cmd == ["sudo", "rpi-eeprom-config"]:
+                return eeprom_text.encode()
+            if cmd == ["vcgencmd", "bootloader_version"]:
+                return f"2026/10/30 20:55:54\nversion abc\ntimestamp {current_ts}\n".encode()
+            if cmd == ["rpi-eeprom-update", "-l"]:
+                return (latest + "\n").encode()
+            if cmd[:2] == ["sudo", "flashrom"]:
+                assert "-r" in cmd and "-w" not in cmd
+                if flashrom_ts is None:
+                    raise RuntimeError("flashrom failed")
+                eeprom_bin(cmd[-1], flashrom_ts)
+                return b""
+            raise AssertionError(cmd)
 
         @staticmethod
         def run(cmd, **kw):
             assert cmd[:3] == ["sudo", "rpi-eeprom-config", "--apply"]
             applied["text"] = Path(cmd[3]).read_text()
+            applied["image"] = cmd[4] if len(cmd) > 4 else None
 
-    ns = {"re": re, "subprocess": FakeSubprocess}
+    ns = {"re": re, "os": os, "subprocess": FakeSubprocess}
     exec(compile(module, "Scheduler.py", "exec"), ns)
+    if "eeprom_source_image" in ns:
+        ns["eeprom_source_image"].__defaults__ = (str(tmp / "current.bin"),)
+    if "eeprom_blocked_by_first_boot" in ns:
+        ns["eeprom_blocked_by_first_boot"].__defaults__ = (str(tmp / "no-rc.local"),)
+    if "eeprom_current_timestamp" in ns:
+        ns["eeprom_current_timestamp"].__defaults__ = (str(tmp / "dt-build-timestamp"),)
+    ns["_dt"] = tmp / "dt-build-timestamp"
+    ns["_latest"] = latest
+    ns["_dump"] = str(tmp / "current.bin")
     return ns, applied
 
 
@@ -83,6 +117,73 @@ def test_patched_scheduler_no_write_when_already_correct():
     src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
     ns, applied = load_eeprom_functions(src, text)
     assert caller_flow(ns) is False
+    assert applied == {}
+
+
+PISHRINK_RC_LOCAL = "#!/bin/bash\ndo_expand_rootfs() {\n  reboot\n}\nraspi_config_expand\n"
+
+
+def test_patched_scheduler_waits_for_first_boot_expand(tmp_path):
+    rc = tmp_path / "rc.local"
+    rc.write_text(PISHRINK_RC_LOCAL)
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY)
+    ns["eeprom_blocked_by_first_boot"].__defaults__ = (str(rc),)
+    caller_flow(ns)
+    assert applied == {}
+
+
+def test_patched_scheduler_writes_after_first_boot_expand(tmp_path):
+    rc = tmp_path / "rc.local"
+    rc.write_text("#!/bin/sh -e\nexit 0\n")
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY)
+    ns["eeprom_blocked_by_first_boot"].__defaults__ = (str(rc),)
+    caller_flow(ns)
+    assert "POWER_OFF_ON_HALT=1" in applied["text"]
+
+
+def test_patched_scheduler_writes_without_rc_local(tmp_path):
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY)
+    ns["eeprom_blocked_by_first_boot"].__defaults__ = (str(tmp_path / "missing"),)
+    caller_flow(ns)
+    assert "POWER_OFF_ON_HALT=1" in applied["text"]
+
+
+def test_patched_scheduler_keeps_current_bootloader_version():
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY, current_ts=200, flashrom_ts=200, latest_ts=100)
+    caller_flow(ns)
+    assert applied["image"] == ns["_dump"]
+
+
+def test_patched_scheduler_never_downgrades_when_read_fails():
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY, current_ts=200, flashrom_ts=None, latest_ts=100)
+    caller_flow(ns)
+    assert applied == {}
+
+
+def test_patched_scheduler_rejects_dump_of_other_version():
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY, current_ts=200, flashrom_ts=150, latest_ts=100)
+    caller_flow(ns)
+    assert applied == {}
+
+
+def test_patched_scheduler_uses_packaged_image_when_not_older():
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY, current_ts=100, flashrom_ts=None, latest_ts=150)
+    caller_flow(ns)
+    assert applied["image"] == ns["_latest"]
+
+
+def test_patched_scheduler_reads_version_from_device_tree():
+    src = patch.patch_scheduler((REF / "Mothbox/Scheduler.py").read_text())
+    ns, applied = load_eeprom_functions(src, FACTORY, current_ts=1, flashrom_ts=None, latest_ts=150)
+    ns["_dt"].write_bytes((200).to_bytes(4, "big"))
+    caller_flow(ns)
     assert applied == {}
 
 
