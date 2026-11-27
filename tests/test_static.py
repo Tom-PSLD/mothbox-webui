@@ -76,3 +76,11 @@ def test_fix6_active_off_warning_in_page():
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     assert 'id="active-off-box"' in html
     assert 'data-i18n="finish.active_off"' in html
+
+
+def test_power_bar_in_page():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    for id_ in ("power-reboot", "power-shutdown", "power-done"):
+        assert f'id="{id_}"' in html
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert "/api/power/" in js

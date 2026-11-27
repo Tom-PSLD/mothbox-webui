@@ -404,6 +404,25 @@ async function reboot() {
   } catch (e) {}
 }
 
+async function powerAction(action) {
+  let question = t("power.confirm_reboot");
+  if (action === "shutdown") {
+    question = state && state.next_session
+      ? t("power.confirm_shutdown", { next: fmtDateTime(new Date(state.next_session)) })
+      : t("power.confirm_shutdown_psw");
+  }
+  if (!window.confirm(question)) return;
+  try {
+    await api("POST", `/api/power/${action}`);
+  } catch (e) { return; }
+  rebooting = true;
+  $("main").hidden = true;
+  $("#steps").hidden = true;
+  $("#power-bar").hidden = true;
+  $("#power-done-text").textContent = t(action === "shutdown" ? "power.off" : "power.rebooting");
+  $("#power-done").hidden = false;
+}
+
 function tickPhoneTime() {
   const d = new Date();
   $("#phone-time").textContent = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -439,6 +458,8 @@ async function init() {
   });
   $("#photo-btn").addEventListener("click", takePhoto);
   $("#reboot-btn").addEventListener("click", reboot);
+  $("#power-reboot").addEventListener("click", () => powerAction("reboot"));
+  $("#power-shutdown").addEventListener("click", () => powerAction("shutdown"));
 
   await loadState(true);
   buildDays();

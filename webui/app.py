@@ -225,6 +225,27 @@ def create_app(paths: Paths, runner, camera_factory=TestCamera, start_threads: b
         threading.Thread(target=later, daemon=True).start()
         return jsonify({"ok": True})
 
+    power_commands = {"reboot": ["systemctl", "reboot"], "shutdown": ["systemctl", "poweroff"]}
+    power_lock = threading.Lock()
+    power_started = []
+
+    @app.post("/api/power/<action>")
+    def power(action):
+        if action not in power_commands:
+            raise ApiError("not_found", 404)
+        with power_lock:
+            if power_started:
+                return jsonify({"ok": True})
+            power_started.append(action)
+        outputs.all_off()
+
+        def later():
+            time.sleep(reboot_delay)
+            runner.run(power_commands[action])
+
+        threading.Thread(target=later, daemon=True).start()
+        return jsonify({"ok": True})
+
     for url in ("/generate_204", "/gen_204", "/hotspot-detect.html", "/library/test/success.html",
                 "/ncsi.txt", "/connecttest.txt"):
         app.add_url_rule(url, url, lambda: redirect(PORTAL_URL, 302))

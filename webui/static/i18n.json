@@ -104,7 +104,14 @@
   "clock.choose": "— choisir —",
   "error.active_off": "Le switch Active est sur OFF : la Mothbox ne fera aucune session.",
   "finish.active_off_title": "Attention : le switch Active est sur OFF",
-  "finish.active_off": "Avec Active sur OFF, la Mothbox s'éteint dès qu'elle se réveille et ne prend aucune photo. Remettez le switch Active sur ON."
+  "finish.active_off": "Avec Active sur OFF, la Mothbox s'éteint dès qu'elle se réveille et ne prend aucune photo. Remettez le switch Active sur ON.",
+  "power.reboot": "⟳ Redémarrer",
+  "power.shutdown": "⏻ Éteindre",
+  "power.confirm_reboot": "Redémarrer la Mothbox ? En mode DEBUG, le wifi revient dans environ 1 minute : reconnectez-vous puis rechargez la page.",
+  "power.confirm_shutdown": "Éteindre la Mothbox ? Elle se rallumera seule le {next}, ou avec le bouton PSW.",
+  "power.confirm_shutdown_psw": "Éteindre la Mothbox ? Aucune session n'est programmée : elle ne se rallumera qu'avec le bouton PSW.",
+  "power.rebooting": "La Mothbox redémarre. En mode DEBUG, reconnectez-vous à son wifi dans environ 1 minute puis rechargez la page.",
+  "power.off": "La Mothbox est éteinte. Vous pouvez fermer cette page."
  },
  "en": {
   "step.clock": "Time",
@@ -211,6 +218,13 @@
   "clock.choose": "— choose —",
   "error.active_off": "The Active switch is OFF: the Mothbox will run no session.",
   "finish.active_off_title": "Warning: the Active switch is OFF",
-  "finish.active_off": "With Active OFF, the Mothbox shuts down as soon as it wakes up and takes no photos. Set the Active switch back to ON."
+  "finish.active_off": "With Active OFF, the Mothbox shuts down as soon as it wakes up and takes no photos. Set the Active switch back to ON.",
+  "power.reboot": "⟳ Restart",
+  "power.shutdown": "⏻ Shut down",
+  "power.confirm_reboot": "Restart the Mothbox? In DEBUG mode its wifi comes back in about 1 minute: reconnect, then reload the page.",
+  "power.confirm_shutdown": "Shut down the Mothbox? It will wake up by itself on {next}, or with the PSW button.",
+  "power.confirm_shutdown_psw": "Shut down the Mothbox? No session is scheduled: only the PSW button will wake it up.",
+  "power.rebooting": "The Mothbox is restarting. In DEBUG mode, reconnect to its wifi in about 1 minute, then reload the page.",
+  "power.off": "The Mothbox is off. You can close this page."
  }
 }

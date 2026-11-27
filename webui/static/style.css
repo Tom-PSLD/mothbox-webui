@@ -177,3 +177,8 @@ details[open] summary { margin-bottom: 12px; }
   font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 10;
 }
 .toast.error { background: var(--danger); color: #fff; }
+
+.power-bar { max-width: 560px; margin: 0 auto; padding: 0 16px 96px; display: flex; gap: 10px; }
+.power-bar button { flex: 1; }
+.secondary.danger { border-color: var(--danger); color: var(--danger); }
+.power-done { max-width: 528px; margin: 32px auto; text-align: center; }

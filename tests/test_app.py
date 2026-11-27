@@ -243,3 +243,54 @@ def test_fix6_reboot_refused_when_active_off(ctx):
     assert r.status_code == 409
     assert r.get_json()["error"] == "active_off"
     assert ["systemctl", "reboot"] not in sim.calls
+
+
+def _wait_for(sim, prefix):
+    for _ in range(50):
+        if any(c[:2] == prefix for c in sim.calls):
+            return
+        time.sleep(0.02)
+
+
+def test_power_reboot_ignores_switches(ctx):
+    client, sim, _ = ctx
+    r = client.post("/api/power/reboot")
+    assert r.get_json() == {"ok": True}
+    _wait_for(sim, ["systemctl", "reboot"])
+    assert ["systemctl", "reboot"] in sim.calls
+
+
+def test_power_shutdown_calls_poweroff(ctx):
+    client, sim, _ = ctx
+    r = client.post("/api/power/shutdown")
+    assert r.get_json() == {"ok": True}
+    _wait_for(sim, ["systemctl", "poweroff"])
+    assert ["systemctl", "poweroff"] in sim.calls
+    assert ["systemctl", "reboot"] not in sim.calls
+
+
+def test_power_turns_outputs_off_first(ctx):
+    client, sim, paths = ctx
+    client.post("/api/output/attract", json={"on": True})
+    client.post("/api/power/shutdown")
+    _wait_for(sim, ["systemctl", "poweroff"])
+    off = ["python3", str(paths.mothbox_root / "scripts/Attract_Off_noBootLock.py")]
+    assert sim.calls.index(off) < sim.calls.index(["systemctl", "poweroff"])
+
+
+def test_power_unknown_action(ctx):
+    client, sim, _ = ctx
+    r = client.post("/api/power/foo")
+    assert r.status_code == 404
+    time.sleep(0.05)
+    assert not any(c[:1] == ["systemctl"] for c in sim.calls)
+
+
+def test_power_twice_single_command(ctx):
+    client, sim, _ = ctx
+    client.post("/api/power/reboot")
+    r = client.post("/api/power/shutdown")
+    assert r.get_json() == {"ok": True}
+    _wait_for(sim, ["systemctl", "reboot"])
+    time.sleep(0.05)
+    assert len([c for c in sim.calls if c[:1] == ["systemctl"]]) == 1
