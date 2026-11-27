@@ -18,7 +18,7 @@ fi
 MOTHBOX="$ROOT/home/pi/Desktop/Mothbox"
 [ -d "$MOTHBOX" ] || { echo "Mothbox folder not found: $MOTHBOX" >&2; exit 1; }
 
-echo "1/6 copy webui"
+echo "1/8 copy webui"
 rm -rf "$MOTHBOX/webui"
 mkdir -p "$MOTHBOX/webui"
 ( cd "$HERE/webui" && find . -type f ! -path '*/__pycache__/*' -print0 | while IFS= read -r -d '' f; do
@@ -26,13 +26,13 @@ mkdir -p "$MOTHBOX/webui"
     cp "$f" "$MOTHBOX/webui/$f"
   done )
 
-echo "2/6 systemd service (not enabled)"
+echo "2/8 systemd service (not enabled)"
 install -D -m 644 "$HERE/deploy/mothbox-webui.service" "$ROOT/etc/systemd/system/mothbox-webui.service"
 
-echo "3/6 captive portal DNS"
+echo "3/8 captive portal DNS"
 install -D -m 644 "$HERE/deploy/captive-dnsmasq.conf" "$ROOT/etc/NetworkManager/dnsmasq-shared.d/mothbox-captive.conf"
 
-echo "4/6 DebugMode.py"
+echo "4/8 DebugMode.py"
 if ! grep -q "mothbox-webui" "$MOTHBOX/DebugMode.py"; then
   cat >> "$MOTHBOX/DebugMode.py" <<'PY'
 
@@ -41,7 +41,7 @@ subprocess.run(["sudo", "systemctl", "start", "mothbox-webui"], check=False)
 PY
 fi
 
-echo "5/6 hotspot name Mothbox-<name>"
+echo "5/8 hotspot name Mothbox-<name>"
 AP="$ROOT/usr/bin/accesspopup"
 if [ -f "$AP" ] && ! grep -q "mothbox-webui" "$AP"; then
   BLOCK="$(mktemp)"
@@ -61,14 +61,31 @@ SH
   rm -f "$BLOCK"
 fi
 
-echo "6/6 remove saved wifi networks"
-NMC="$ROOT/etc/NetworkManager/system-connections"
-if [ -d "$NMC" ]; then
-  for f in "$NMC"/*; do
-    [ -e "$f" ] || continue
-    echo "   - $(basename "$f")"
-    rm -f "$f"
-  done
+echo "6/8 Scheduler.py: EEPROM fix (keep BOOT_ORDER)"
+python3 "$HERE/deploy/patch_mothbox.py" scheduler "$MOTHBOX/Scheduler.py"
+python3 -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$MOTHBOX/Scheduler.py"
+
+echo "7/8 accesspopup: keep AP profile, create it without wlan0 up"
+if [ -f "$AP" ]; then
+  python3 "$HERE/deploy/patch_mothbox.py" accesspopup "$AP"
+  bash -n "$AP"
 fi
+
+echo "8/8 replace saved wifi networks by a clean hotspot profile"
+NMC="$ROOT/etc/NetworkManager/system-connections"
+mkdir -p "$NMC"
+for f in "$NMC"/*; do
+  [ -e "$f" ] || continue
+  echo "   - $(basename "$f")"
+  rm -f "$f"
+done
+NAMEF="$ROOT/boot/firmware/mothbox_custom/system/controls/name.txt"
+_mb_name=$(sed -n 's/^name=//p' "$NAMEF" 2>/dev/null | tr -cd 'A-Za-z0-9-' | cut -c1-24 || true)
+if [ -n "$_mb_name" ]; then SSID="Mothbox-$_mb_name"; else SSID="mothboxwifi"; fi
+PSK=$(sed -n "s/^ap_pw='\(.*\)'$/\1/p" "$AP" 2>/dev/null | head -1)
+[ -n "$PSK" ] || PSK="lunaluna"
+python3 "$HERE/deploy/patch_mothbox.py" ap-profile "$NMC/AccessPopup.nmconnection" \
+  "$SSID" "$PSK" "192.168.50.5/24" "192.168.50.254"
+echo "   + AccessPopup.nmconnection (ssid $SSID)"
 
 echo "done"

@@ -17,7 +17,9 @@ Interface en français et en anglais (langue du téléphone détectée). Le wifi
 
 Télécharger l'image dans les [Releases](../../releases) et l'écrire sur la carte microSD avec **Raspberry Pi Imager** (Utiliser une image personnalisée). Inutile de décompresser le fichier.
 
-L'image contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et **aucun réseau wifi enregistré**.
+L'image contient le système Mothbox 5.2.1 d'origine, complété par la page de réglage, et **aucun réseau wifi enregistré** (seul le hotspot `Mothbox-<nom>` est préconfiguré).
+
+> **Image du 26/11 retirée** : sur un Raspberry Pi 5 dont l'EEPROM n'avait jamais été configurée par Mothbox, le `Scheduler.py` d'origine réécrivait l'EEPROM avec `BOOT_ORDER=0` (au lieu de `0xf461`) ; la box ne redémarrait plus et le wifi n'apparaissait jamais. Corrigé dans l'image du 27/11. Pour réparer une box touchée : Raspberry Pi Imager → Misc utility images → Bootloader (Pi 5 family) → SD Card Boot, démarrer la box sur cette carte jusqu'au clignotement rapide de la LED verte, puis flasher l'image.
 
 ## Guides
 
@@ -36,7 +38,7 @@ cd mothbox-webui
 sudo deploy/install.sh
 ```
 
-Le script copie la page dans `~/Desktop/Mothbox/webui`, installe le service `mothbox-webui` (lancé uniquement en mode Debug), le portail captif, renomme le hotspot en `Mothbox-<nom>` et supprime les réseaux wifi enregistrés. Il peut être rejoué sans risque. `--root DIR` permet de l'appliquer sur une image montée.
+Le script copie la page dans `~/Desktop/Mothbox/webui`, installe le service `mothbox-webui` (lancé uniquement en mode Debug), le portail captif, renomme le hotspot en `Mothbox-<nom>`, remplace les réseaux wifi enregistrés par un profil hotspot propre, et corrige deux défauts de Mothbox 5.2.1 : la réécriture de l'EEPROM (`BOOT_ORDER`) par `Scheduler.py` et la suppression du profil hotspot par `accesspopup` quand le wifi n'est pas encore prêt. Il peut être rejoué sans risque. `--root DIR` permet de l'appliquer sur une image montée.
 
 ## Essayer sur un PC (simulation)
 
@@ -81,7 +83,9 @@ French and English interface (phone language detected). Each box's wifi is named
 
 Download the image from the [Releases](../../releases) and write it to the microSD card with **Raspberry Pi Imager** (Use custom image). No need to unzip it.
 
-The image contains the original Mothbox 5.2.1 system plus the setup page, and **no saved wifi network**.
+The image contains the original Mothbox 5.2.1 system plus the setup page, and **no saved wifi network** (only the `Mothbox-<name>` hotspot is preconfigured).
+
+> **2026-11-26 image withdrawn**: on a Raspberry Pi 5 whose EEPROM had never been configured by Mothbox, the stock `Scheduler.py` rewrote the EEPROM with `BOOT_ORDER=0` (instead of `0xf461`); the box no longer rebooted and the wifi never appeared. Fixed in the 2026-11-27 image. To repair an affected box: Raspberry Pi Imager → Misc utility images → Bootloader (Pi 5 family) → SD Card Boot, boot the box from that card until the green LED blinks fast, then flash the image.
 
 ## Guides
 
@@ -98,7 +102,7 @@ cd mothbox-webui
 sudo deploy/install.sh
 ```
 
-The script copies the page to `~/Desktop/Mothbox/webui`, installs the `mothbox-webui` service (runs in Debug mode only) and the captive portal, renames the hotspot to `Mothbox-<name>` and removes saved wifi networks. It is safe to run again. `--root DIR` applies it to a mounted image.
+The script copies the page to `~/Desktop/Mothbox/webui`, installs the `mothbox-webui` service (runs in Debug mode only) and the captive portal, renames the hotspot to `Mothbox-<name>`, replaces saved wifi networks with a clean hotspot profile, and fixes two Mothbox 5.2.1 defects: `Scheduler.py` rewriting the EEPROM (`BOOT_ORDER`) and `accesspopup` deleting the hotspot profile when the wifi is not ready yet. It is safe to run again. `--root DIR` applies it to a mounted image.
 
 ## Try it on a PC (simulation)
 
